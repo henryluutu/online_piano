@@ -13,9 +13,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const normalizedPublicSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+const normalizedVercelUrl = process.env.VERCEL_URL?.trim();
+
 const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://online-piano.vercel.app");
+  normalizedPublicSiteUrl ??
+  (normalizedVercelUrl ? `https://${normalizedVercelUrl}` : "https://onlinepiano-rho.vercel.app");
 
 export const metadata: Metadata = {
   title: "Online Piano – 88-Key Arranger Keyboard Workstation",
