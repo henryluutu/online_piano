@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { audioEngine } from "@/audio/engine";
+import { AdsenseSlot } from "@/components/ads/adsense-slot";
 import { PianoKeyboard } from "@/components/workstation/piano-keyboard";
 import { TopBar } from "@/components/workstation/top-bar";
 import { useMidiInput } from "@/hooks/useMidiInput";
@@ -61,11 +62,15 @@ export default function Home() {
           <TopBar />
         </motion.header>
 
+        <AdsenseSlot slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP ?? ""} className="min-h-[90px]" format="horizontal" />
+
         <div className="min-h-0 flex-1">
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="h-full">
             <PianoKeyboard />
           </motion.section>
         </div>
+
+        <AdsenseSlot slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM ?? ""} className="min-h-[90px]" format="horizontal" />
       </div>
     </main>
   );

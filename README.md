@@ -38,6 +38,22 @@ npm run lint
 npm run build
 ```
 
+## Deploy (Git + Vercel)
+
+1. Push this repo to GitHub.
+2. Import the repo in Vercel.
+3. Set these Environment Variables in Vercel project settings:
+	- `NEXT_PUBLIC_ADSENSE_CLIENT` (example: `ca-pub-xxxxxxxxxxxxxxxx`)
+	- `NEXT_PUBLIC_ADSENSE_SLOT_TOP`
+	- `NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM`
+4. Trigger deploy (automatic on push).
+
+## Ads / Revenue
+
+- Ad slots are rendered on the homepage top and bottom.
+- If env vars are missing, ads stay hidden automatically.
+- Use your own approved AdSense account and slot IDs.
+
 ## Notes
 
 - First interaction with keys/buttons unlocks browser audio.
