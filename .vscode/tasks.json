@@ -12,7 +12,8 @@
 			"isBackground": true,
 			"options": {
 				"env": {
-					"Path": "C:\\Program Files\\nodejs;${env:Path}"
+					"Path": "C:\\Program Files\\nodejs;${env:Path}",
+					"NODE_OPTIONS": "--max-old-space-size=8192"
 				}
 			},
 			"problemMatcher": [],

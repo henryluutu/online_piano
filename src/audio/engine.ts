@@ -1,5 +1,8 @@
 import { clamp, midiToFrequency } from "@/lib/music";
 import type { StyleId, Variation, VoiceId } from "@/store/useWorkstationStore";
+import type * as ToneType from "tone";
+
+type ToneModule = typeof import("tone");
 
 type VoicePreset = {
   oscillator: "sine" | "triangle" | "square" | "sawtooth";
@@ -42,22 +45,22 @@ const STYLE_PATTERNS: Record<StyleId, StylePattern> = {
 };
 
 class WorkstationAudioEngine {
-  private Tone: any = null;
+  private Tone: ToneModule | null = null;
   private isInitialized = false;
 
-  private synth: any;
-  private reverb: any;
-  private chorus: any;
-  private delay: any;
-  private eq: any;
+  private synth: ToneType.PolySynth | null = null;
+  private reverb: ToneType.Reverb | null = null;
+  private chorus: ToneType.Chorus | null = null;
+  private delay: ToneType.FeedbackDelay | null = null;
+  private eq: ToneType.EQ3 | null = null;
 
-  private kick: any;
-  private snare: any;
-  private hat: any;
-  private click: any;
+  private kick: ToneType.MembraneSynth | null = null;
+  private snare: ToneType.NoiseSynth | null = null;
+  private hat: ToneType.MetalSynth | null = null;
+  private click: ToneType.MembraneSynth | null = null;
 
-  private stepLoop: any = null;
-  private metronomeLoop: any = null;
+  private stepLoop: ToneType.Loop | null = null;
+  private metronomeLoop: ToneType.Loop | null = null;
   private currentStep = 0;
   private currentStyle: StyleId = "pop";
   private currentVariation: Variation = "A";
@@ -106,7 +109,7 @@ class WorkstationAudioEngine {
 
     this.stepLoop = new Tone.Loop((time: number) => this.runStep(time), "16n");
     this.metronomeLoop = new Tone.Loop((time: number) => {
-      this.click.triggerAttackRelease("C6", "32n", time, 0.2);
+      this.click?.triggerAttackRelease("C6", "32n", time, 0.2);
     }, "4n");
 
     Tone.Transport.bpm.value = this.pendingTempo;
@@ -122,6 +125,8 @@ class WorkstationAudioEngine {
   private runStep(time: number) {
     const pattern = STYLE_PATTERNS[this.currentStyle];
     const step = this.currentStep;
+
+    if (!this.kick || !this.snare || !this.hat) return;
 
     if (pattern.kick.includes(step)) this.kick.triggerAttackRelease("C1", "8n", time, 0.95);
     if (pattern.snare.includes(step)) this.snare.triggerAttackRelease("16n", time, 0.6);

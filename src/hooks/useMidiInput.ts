@@ -7,7 +7,8 @@ import { useWorkstationStore } from "@/store/useWorkstationStore";
 
 type MidiAccess = {
   inputs: Map<string, MIDIInput>;
-  onstatechange: (() => void) | null;
+  addEventListener(type: "statechange", handler: EventListener): void;
+  removeEventListener(type: "statechange", handler: EventListener): void;
 };
 
 export function useMidiInput() {
@@ -19,7 +20,38 @@ export function useMidiInput() {
 
   useEffect(() => {
     let cancelled = false;
-    const listeners: Array<() => void> = [];
+    const msgListeners: Array<() => void> = [];
+    let access: MidiAccess | null = null;
+    let stateChangeHandler: EventListener | null = null;
+
+    const bindInputs = (acc: MidiAccess) => {
+      const inputs = [...acc.inputs.values()];
+      const names = inputs.map((i) => i.name).filter(Boolean).join(", ");
+      setMidiDeviceName(names || "No MIDI device");
+
+      for (const input of inputs) {
+        const handleMessage = (event: MIDIMessageEvent) => {
+          if (!event.data) return;
+          const parsed = parseNoteFromMidiMessage(event.data);
+          if (parsed.channel !== midiChannel) return;
+          const shiftedNote = Math.max(0, Math.min(127, parsed.note + octaveShift * 12));
+
+          if (parsed.isNoteOn) {
+            const velocity = parsed.velocity / 127;
+            audioEngine.noteOn(shiftedNote, velocity);
+            noteOn(shiftedNote);
+          }
+
+          if (parsed.isNoteOff) {
+            audioEngine.noteOff(shiftedNote);
+            noteOff(shiftedNote);
+          }
+        };
+
+        input.addEventListener("midimessage", handleMessage);
+        msgListeners.push(() => input.removeEventListener("midimessage", handleMessage));
+      }
+    };
 
     const init = async () => {
       if (!("requestMIDIAccess" in navigator)) {
@@ -27,50 +59,30 @@ export function useMidiInput() {
         return;
       }
 
-      const access = (await navigator.requestMIDIAccess()) as unknown as MidiAccess;
+      const acc = (await navigator.requestMIDIAccess({ sysex: false })) as unknown as MidiAccess;
       if (cancelled) return;
 
-      const bindInputs = () => {
-        const inputs = [...access.inputs.values()];
-        setMidiDeviceName(inputs[0]?.name ?? "No MIDI device");
+      access = acc;
+      bindInputs(acc);
 
-        for (const input of inputs) {
-          const handleMessage = (event: MIDIMessageEvent) => {
-            if (!event.data) return;
-            const parsed = parseNoteFromMidiMessage(event.data);
-            if (parsed.channel !== midiChannel) return;
-            const shiftedNote = Math.max(0, Math.min(127, parsed.note + octaveShift * 12));
-
-            if (parsed.isNoteOn) {
-              const velocity = parsed.velocity / 127;
-              audioEngine.noteOn(shiftedNote, velocity);
-              noteOn(shiftedNote);
-            }
-
-            if (parsed.isNoteOff) {
-              audioEngine.noteOff(shiftedNote);
-              noteOff(shiftedNote);
-            }
-          };
-
-          input.addEventListener("midimessage", handleMessage);
-          listeners.push(() => input.removeEventListener("midimessage", handleMessage));
-        }
+      // Hot-plug: fires whenever a device is connected or disconnected
+      stateChangeHandler = () => {
+        if (cancelled) return;
+        msgListeners.splice(0).forEach((off) => off());
+        bindInputs(acc);
       };
 
-      bindInputs();
-
-      access.onstatechange = () => {
-        listeners.splice(0).forEach((off) => off());
-        bindInputs();
-      };
+      acc.addEventListener("statechange", stateChangeHandler);
     };
 
     void init();
 
     return () => {
       cancelled = true;
-      listeners.forEach((off) => off());
+      msgListeners.forEach((off) => off());
+      if (access && stateChangeHandler) {
+        access.removeEventListener("statechange", stateChangeHandler);
+      }
     };
   }, [midiChannel, noteOff, noteOn, octaveShift, setMidiDeviceName]);
 }

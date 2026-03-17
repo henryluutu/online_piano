@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { audioEngine } from "@/audio/engine";
 import { cn } from "@/lib/utils";
 import { isBlackKey } from "@/lib/music";
-import { Button } from "@/components/ui/button";
 import { useWorkstationStore } from "@/store/useWorkstationStore";
 
 type PianoKey = {
@@ -29,21 +28,33 @@ function buildKeys(startMidi: number, keyCount: number): PianoKey[] {
   return result;
 }
 
-const START_MIDI = 36;
-const KEY_COUNT = 61;
+// Full 88-key range: A0 (MIDI 21) → C8 (MIDI 108)
+const START_MIDI = 21;
+const KEY_COUNT = 88;
+const WHITE_KEY_PX = 26;  // px per white key
+const WHITE_COUNT = 52;   // total white keys on 88-key piano
+const MIN_WIDTH = WHITE_KEY_PX * WHITE_COUNT; // 1352px
+const BLACK_WIDTH = Math.round(WHITE_KEY_PX * 0.62);
+
+// C4 = MIDI 60 → white key index 23 counted from A0
+const C4_WHITE_INDEX = 23;
 
 export function PianoKeyboard() {
   const activeNotes = useWorkstationStore((s) => s.activeNotes);
-  const octaveShift = useWorkstationStore((s) => s.octaveShift);
-  const setOctaveShift = useWorkstationStore((s) => s.setOctaveShift);
   const noteOn = useWorkstationStore((s) => s.noteOn);
   const noteOff = useWorkstationStore((s) => s.noteOff);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const keyboard = useMemo(() => buildKeys(START_MIDI + octaveShift * 12, KEY_COUNT), [octaveShift]);
-  const whiteCount = useMemo(() => keyboard.filter((k) => !k.black).length, [keyboard]);
-  const whiteWidth = 100 / whiteCount;
-  const blackWidth = whiteWidth * 0.62;
+  const keyboard = useMemo(() => buildKeys(START_MIDI, KEY_COUNT), []);
   const activeSet = useMemo(() => activeNotes, [activeNotes]);
+
+  // Scroll to center around C4 on mount
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const c4Px = C4_WHITE_INDEX * WHITE_KEY_PX;
+    el.scrollLeft = Math.max(0, c4Px - el.clientWidth / 2);
+  }, []);
 
   const handleDown = (midi: number, velocity = 0.85) => {
     audioEngine.noteOn(midi, velocity);
@@ -58,27 +69,12 @@ export function PianoKeyboard() {
   return (
     <div className="rounded-2xl border border-white/10 bg-zinc-950/80 p-3">
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-xs uppercase tracking-wider text-zinc-400">61-Key Manual (Octave Shift)</p>
-        <div className="flex items-center gap-1.5">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => setOctaveShift(Math.max(-2, octaveShift - 1))}
-          >
-            Oct-
-          </Button>
-          <span className="w-12 text-center text-xs text-zinc-300">{octaveShift > 0 ? `+${octaveShift}` : octaveShift}</span>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => setOctaveShift(Math.min(2, octaveShift + 1))}
-          >
-            Oct+
-          </Button>
-        </div>
+        <p className="text-xs uppercase tracking-wider text-zinc-400">88-Key Piano · A0 – C8</p>
+        <p className="text-xs text-zinc-500">scroll to explore ←→</p>
       </div>
 
-      <div className="relative h-[190px] w-full">
+      <div ref={scrollRef} className="overflow-x-auto">
+      <div className="relative h-[190px]" style={{ width: `${MIN_WIDTH}px` }}>
         {keyboard.filter((k) => !k.black).map((key) => {
           const isActive = activeSet.has(key.midi);
           return (
@@ -90,7 +86,7 @@ export function PianoKeyboard() {
                 "absolute top-0 h-full rounded-b-xl border border-zinc-300/20 bg-gradient-to-b from-zinc-100 to-zinc-300 shadow-inner",
                 isActive && "from-indigo-100 to-indigo-300",
               )}
-              style={{ left: `${key.whiteIndex * whiteWidth}%`, width: `${whiteWidth}%` }}
+              style={{ left: `${key.whiteIndex * WHITE_KEY_PX}px`, width: `${WHITE_KEY_PX - 1}px` }}
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture(event.pointerId);
                 handleDown(key.midi, 0.82);
@@ -117,7 +113,7 @@ export function PianoKeyboard() {
                 "absolute top-0 z-10 h-[130px] rounded-b-lg border border-black/50 bg-gradient-to-b from-zinc-700 to-black shadow-xl",
                 isActive && "from-indigo-500 to-indigo-800",
               )}
-              style={{ left: `${key.whiteIndex * whiteWidth - blackWidth / 2}%`, width: `${blackWidth}%` }}
+              style={{ left: `${key.whiteIndex * WHITE_KEY_PX - BLACK_WIDTH / 2}px`, width: `${BLACK_WIDTH}px` }}
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture(event.pointerId);
                 handleDown(key.midi, 0.95);
@@ -132,6 +128,7 @@ export function PianoKeyboard() {
             />
           );
         })}
+      </div>
       </div>
     </div>
   );
