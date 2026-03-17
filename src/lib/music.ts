@@ -34,6 +34,10 @@ export function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
+export function transposeMidi(midi: number, semitones: number) {
+  return clamp(midi + semitones, 0, 127);
+}
+
 export function parseNoteFromMidiMessage(data: Uint8Array) {
   const [status, note, velocity = 0] = data;
   const command = status & 0xf0;

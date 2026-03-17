@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { audioEngine } from "@/audio/engine";
 import { cn } from "@/lib/utils";
-import { isBlackKey } from "@/lib/music";
+import { isBlackKey, transposeMidi } from "@/lib/music";
 import { useWorkstationStore } from "@/store/useWorkstationStore";
 
 type PianoKey = {
@@ -41,9 +41,11 @@ const C4_WHITE_INDEX = 23;
 
 export function PianoKeyboard() {
   const activeNotes = useWorkstationStore((s) => s.activeNotes);
+  const transpose = useWorkstationStore((s) => s.transpose);
   const noteOn = useWorkstationStore((s) => s.noteOn);
   const noteOff = useWorkstationStore((s) => s.noteOff);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const activeNoteMap = useRef(new Map<number, number>());
 
   const keyboard = useMemo(() => buildKeys(START_MIDI, KEY_COUNT), []);
   const activeSet = useMemo(() => activeNotes, [activeNotes]);
@@ -57,12 +59,16 @@ export function PianoKeyboard() {
   }, []);
 
   const handleDown = (midi: number, velocity = 0.85) => {
-    audioEngine.noteOn(midi, velocity);
+    const soundingNote = transposeMidi(midi, transpose);
+    activeNoteMap.current.set(midi, soundingNote);
+    audioEngine.noteOn(soundingNote, velocity);
     noteOn(midi);
   };
 
   const handleUp = (midi: number) => {
-    audioEngine.noteOff(midi);
+    const soundingNote = activeNoteMap.current.get(midi) ?? transposeMidi(midi, transpose);
+    activeNoteMap.current.delete(midi);
+    audioEngine.noteOff(soundingNote);
     noteOff(midi);
   };
 
@@ -70,7 +76,7 @@ export function PianoKeyboard() {
     <div className="rounded-2xl border border-white/10 bg-zinc-950/80 p-3">
       <div className="mb-2 flex items-center justify-between">
         <p className="text-xs uppercase tracking-wider text-zinc-400">88-Key Piano · A0 – C8</p>
-        <p className="text-xs text-zinc-500">scroll to explore ←→</p>
+        <p className="text-xs text-zinc-500">scroll to explore ←→ · transpose {transpose > 0 ? `+${transpose}` : transpose}</p>
       </div>
 
       <div ref={scrollRef} className="overflow-x-auto">

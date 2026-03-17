@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { audioEngine } from "@/audio/engine";
-import { parseNoteFromMidiMessage } from "@/lib/music";
+import { parseNoteFromMidiMessage, transposeMidi } from "@/lib/music";
 import { useWorkstationStore } from "@/store/useWorkstationStore";
 
 type MidiAccess = {
@@ -14,9 +14,11 @@ type MidiAccess = {
 export function useMidiInput() {
   const midiChannel = useWorkstationStore((s) => s.midiChannel);
   const octaveShift = useWorkstationStore((s) => s.octaveShift);
+  const transpose = useWorkstationStore((s) => s.transpose);
   const setMidiDeviceName = useWorkstationStore((s) => s.setMidiDeviceName);
   const noteOn = useWorkstationStore((s) => s.noteOn);
   const noteOff = useWorkstationStore((s) => s.noteOff);
+  const activeMidiMap = useRef(new Map<number, number>());
 
   useEffect(() => {
     let cancelled = false;
@@ -34,17 +36,20 @@ export function useMidiInput() {
           if (!event.data) return;
           const parsed = parseNoteFromMidiMessage(event.data);
           if (parsed.channel !== midiChannel) return;
-          const shiftedNote = Math.max(0, Math.min(127, parsed.note + octaveShift * 12));
+          const shiftedNote = transposeMidi(parsed.note, octaveShift * 12 + transpose);
 
           if (parsed.isNoteOn) {
+            activeMidiMap.current.set(parsed.note, shiftedNote);
             const velocity = parsed.velocity / 127;
             audioEngine.noteOn(shiftedNote, velocity);
             noteOn(shiftedNote);
           }
 
           if (parsed.isNoteOff) {
-            audioEngine.noteOff(shiftedNote);
-            noteOff(shiftedNote);
+            const releasedNote = activeMidiMap.current.get(parsed.note) ?? shiftedNote;
+            activeMidiMap.current.delete(parsed.note);
+            audioEngine.noteOff(releasedNote);
+            noteOff(releasedNote);
           }
         };
 
@@ -79,10 +84,11 @@ export function useMidiInput() {
 
     return () => {
       cancelled = true;
+      activeMidiMap.current.clear();
       msgListeners.forEach((off) => off());
       if (access && stateChangeHandler) {
         access.removeEventListener("statechange", stateChangeHandler);
       }
     };
-  }, [midiChannel, noteOff, noteOn, octaveShift, setMidiDeviceName]);
+  }, [midiChannel, noteOff, noteOn, octaveShift, setMidiDeviceName, transpose]);
 }

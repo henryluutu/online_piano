@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { Play, Square, Timer, WandSparkles } from "lucide-react";
+import { Minus, Play, Plus, RotateCcw, Square, Timer, WandSparkles } from "lucide-react";
 import { audioEngine } from "@/audio/engine";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ export function TopBar() {
   const midiChannel = useWorkstationStore((s) => s.midiChannel);
   const style = useWorkstationStore((s) => s.style);
   const variation = useWorkstationStore((s) => s.variation);
+  const transpose = useWorkstationStore((s) => s.transpose);
   const isPlaying = useWorkstationStore((s) => s.isPlaying);
   const isMetronomeOn = useWorkstationStore((s) => s.isMetronomeOn);
   const syncStart = useWorkstationStore((s) => s.syncStart);
@@ -35,6 +36,7 @@ export function TopBar() {
   const setMidiChannel = useWorkstationStore((s) => s.setMidiChannel);
   const setStyle = useWorkstationStore((s) => s.setStyle);
   const setVariation = useWorkstationStore((s) => s.setVariation);
+  const setTranspose = useWorkstationStore((s) => s.setTranspose);
   const setIsPlaying = useWorkstationStore((s) => s.setIsPlaying);
   const setMetronome = useWorkstationStore((s) => s.setMetronome);
   const setSyncStart = useWorkstationStore((s) => s.setSyncStart);
@@ -73,7 +75,7 @@ export function TopBar() {
 
   return (
     <div className="space-y-2 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
-      <div className="grid gap-2 lg:grid-cols-[1fr_1fr_1fr_auto]">
+      <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto_auto]">
         <Select
           value={voice}
           onValueChange={(value) => {
@@ -125,6 +127,37 @@ export function TopBar() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="flex items-center gap-1 rounded-xl border border-white/10 px-2 py-1.5">
+          <Button
+            size="icon"
+            variant="secondary"
+            onClick={() => setTranspose(Math.max(-12, transpose - 1))}
+            aria-label="Transpose down"
+          >
+            <Minus className="size-4" />
+          </Button>
+          <div className="min-w-20 text-center text-xs text-zinc-300">
+            <div className="text-[10px] uppercase tracking-wider text-zinc-500">Transpose</div>
+            <div>{transpose > 0 ? `+${transpose}` : transpose} st</div>
+          </div>
+          <Button
+            size="icon"
+            variant="secondary"
+            onClick={() => setTranspose(Math.min(12, transpose + 1))}
+            aria-label="Transpose up"
+          >
+            <Plus className="size-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => setTranspose(0)}
+            aria-label="Reset transpose"
+          >
+            <RotateCcw className="size-4" />
+          </Button>
         </div>
 
         <div className="flex gap-2">

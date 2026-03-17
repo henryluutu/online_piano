@@ -57,6 +57,7 @@ type WorkstationState = {
   midiDeviceName: string;
   midiChannel: number;
   octaveShift: number;
+  transpose: number;
   syncStart: boolean;
   reverb: number;
   chorus: number;
@@ -75,6 +76,7 @@ type WorkstationState = {
   setMidiDeviceName: (name: string) => void;
   setMidiChannel: (channel: number) => void;
   setOctaveShift: (octave: number) => void;
+  setTranspose: (semitones: number) => void;
   setSyncStart: (value: boolean) => void;
   setReverb: (value: number) => void;
   setChorus: (value: number) => void;
@@ -95,6 +97,7 @@ export const useWorkstationStore = create<WorkstationState>((set) => ({
   midiDeviceName: "No MIDI device",
   midiChannel: 1,
   octaveShift: 0,
+  transpose: 0,
   syncStart: false,
   reverb: 0.2,
   chorus: 0.2,
@@ -123,6 +126,7 @@ export const useWorkstationStore = create<WorkstationState>((set) => ({
   setMidiDeviceName: (midiDeviceName) => set({ midiDeviceName }),
   setMidiChannel: (midiChannel) => set({ midiChannel }),
   setOctaveShift: (octaveShift) => set({ octaveShift }),
+  setTranspose: (transpose) => set({ transpose }),
   setSyncStart: (syncStart) => set({ syncStart }),
   setReverb: (reverb) => set({ reverb }),
   setChorus: (chorus) => set({ chorus }),
