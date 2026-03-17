@@ -13,10 +13,41 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://online-piano.vercel.app");
+
 export const metadata: Metadata = {
-  title: "Online Arranger Keyboard Workstation",
+  title: "Online Piano – 88-Key Arranger Keyboard Workstation",
   description:
-    "A modern browser-based arranger keyboard with piano, styles, MIDI, and real-time controls.",
+    "Free browser-based 88-key piano with MIDI input, auto-accompaniment styles (Pop, Gospel, Rock, Ballad, Afrobeat, Funk, Dance), reverb, chorus, delay, EQ, and more. Play online instantly.",
+  keywords: [
+    "online piano",
+    "virtual piano",
+    "88 key piano",
+    "midi keyboard",
+    "arranger keyboard",
+    "play piano online",
+    "free online piano",
+    "web piano",
+  ],
+  metadataBase: new URL(siteUrl),
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "Online Piano – 88-Key Arranger Keyboard Workstation",
+    description:
+      "Play a free 88-key virtual piano with auto-accompaniment, MIDI input, and live effects right in your browser.",
+    url: siteUrl,
+    siteName: "Online Piano",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Online Piano – 88-Key Arranger Keyboard",
+    description: "Free browser-based piano with MIDI, auto-styles, reverb, chorus, delay and EQ.",
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({
