@@ -1,0 +1,72 @@
+"use client";
+
+import { useEffect } from "react";
+import { motion } from "framer-motion";
+import { audioEngine } from "@/audio/engine";
+import { PianoKeyboard } from "@/components/workstation/piano-keyboard";
+import { TopBar } from "@/components/workstation/top-bar";
+import { useMidiInput } from "@/hooks/useMidiInput";
+import { useWorkstationStore } from "@/store/useWorkstationStore";
+
+export default function Home() {
+  useMidiInput();
+
+  const tempo = useWorkstationStore((s) => s.tempo);
+  const voice = useWorkstationStore((s) => s.voice);
+  const style = useWorkstationStore((s) => s.style);
+  const variation = useWorkstationStore((s) => s.variation);
+  const reverb = useWorkstationStore((s) => s.reverb);
+  const chorus = useWorkstationStore((s) => s.chorus);
+  const delay = useWorkstationStore((s) => s.delay);
+  const eqLow = useWorkstationStore((s) => s.eqLow);
+  const eqMid = useWorkstationStore((s) => s.eqMid);
+  const eqHigh = useWorkstationStore((s) => s.eqHigh);
+
+  useEffect(() => {
+    audioEngine.setTempo(tempo);
+  }, [tempo]);
+
+  useEffect(() => {
+    audioEngine.setVoice(voice);
+  }, [voice]);
+
+  useEffect(() => {
+    audioEngine.setStyle(style);
+  }, [style]);
+
+  useEffect(() => {
+    audioEngine.setVariation(variation);
+  }, [variation]);
+
+  useEffect(() => {
+    audioEngine.setReverb(reverb);
+  }, [reverb]);
+
+  useEffect(() => {
+    audioEngine.setChorus(chorus);
+  }, [chorus]);
+
+  useEffect(() => {
+    audioEngine.setDelay(delay);
+  }, [delay]);
+
+  useEffect(() => {
+    audioEngine.setEq(eqLow, eqMid, eqHigh);
+  }, [eqHigh, eqLow, eqMid]);
+
+  return (
+    <main className="workstation-bg h-screen overflow-hidden p-2 text-zinc-100 md:p-3">
+      <div className="mx-auto flex h-full w-full max-w-[1500px] flex-col gap-3">
+        <motion.header initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}>
+          <TopBar />
+        </motion.header>
+
+        <div className="min-h-0 flex-1">
+          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="h-full">
+            <PianoKeyboard />
+          </motion.section>
+        </div>
+      </div>
+    </main>
+  );
+}
