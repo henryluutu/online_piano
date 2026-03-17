@@ -56,21 +56,21 @@ export default function Home() {
   }, [eqHigh, eqLow, eqMid]);
 
   return (
-    <main className="workstation-bg h-screen overflow-hidden p-2 text-zinc-100 md:p-3">
-      <div className="mx-auto flex h-full w-full max-w-[1500px] flex-col gap-3">
+    <main className="workstation-bg min-h-dvh overflow-x-hidden overflow-y-auto p-2 text-zinc-100 md:h-screen md:overflow-hidden md:p-3">
+      <div className="mx-auto flex h-full min-h-dvh w-full max-w-[1500px] flex-col gap-3 md:min-h-0">
         <motion.header initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}>
           <TopBar />
         </motion.header>
 
-        <AdsenseSlot slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP ?? ""} className="min-h-[90px]" format="horizontal" />
+        <AdsenseSlot slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP ?? ""} className="hidden min-h-[90px] md:block" format="horizontal" />
 
-        <div className="min-h-0 flex-1">
-          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="h-full">
+        <div className="min-h-[280px] flex-1 md:min-h-0">
+          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="h-full min-h-[280px]">
             <PianoKeyboard />
           </motion.section>
         </div>
 
-        <AdsenseSlot slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM ?? ""} className="min-h-[90px]" format="horizontal" />
+        <AdsenseSlot slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM ?? ""} className="min-h-[56px] md:min-h-[90px]" format="horizontal" />
       </div>
     </main>
   );
