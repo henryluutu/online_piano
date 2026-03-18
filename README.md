@@ -33,6 +33,14 @@ Then open http://localhost:3000.
 
 ## Platforms: Web, Android, Windows
 
+## Downloads
+
+- Android APK: [Download latest APK](https://github.com/henryluutu/online_piano/releases/latest/download/online-piano-android-debug.apk)
+- Windows EXE: [Download latest Windows installer](https://github.com/henryluutu/online_piano/releases/latest/download/online-piano-windows-setup.exe)
+
+> These links are populated from GitHub Releases by the workflow in `.github/workflows/release-binaries.yml`.
+> Create and push a tag like `v1.0.0` to publish fresh files.
+
 ### Web
 
 - Dev: `npm run dev:web`
