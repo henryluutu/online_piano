@@ -42,9 +42,12 @@ jobs:
         run: npm run android:sync
 
       - name: Build debug APK
+        shell: bash
         run: |
+          sed -i 's/\r$//' android/gradlew
           chmod +x android/gradlew
           cd android
+          ./gradlew --version
           ./gradlew assembleDebug
 
       - name: Prepare APK asset
