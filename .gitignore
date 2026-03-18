@@ -41,3 +41,16 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# tauri / desktop build outputs
+src-tauri/target/
+src-tauri/gen/
+.tauri-build.log
+
+# android build outputs
+android/.gradle/
+android/.idea/
+android/app/build/
+android/build/
+android/local.properties
+android/captures/
